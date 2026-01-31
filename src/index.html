@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HMI Industrial - Node-RED</title>
+    
+    <link type="text/css" rel="stylesheet" href="./libs/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="./libs/bootstrap-vue.min.css" />
+    
+    <link type="text/css" rel="stylesheet" href="./index.css" media="all">
+</head>
+<body>
+    
+    <div id="app" class="container-fluid p-3">
+        
+        <b-card header="Control de Planta" bg-variant="light">
+            <b-row>
+                <b-col md="6">
+                    <h3>Estado del Sistema</h3>
+                    <p>Mensaje desde PLC: <b>{{ msg.payload }}</b></p>
+                    
+                    <b-button variant="success" @click="enviarComando">
+                        <b-icon icon="power"></b-icon> Encender Motor
+                    </b-button>
+                </b-col>
+            </b-row>
+        </b-card>
+
+    </div>
+
+    <script src="../uibuilder/uibuilder.iife.min.js"></script>
+
+    <script src="./libs/vue.min.js"></script>
+    <script src="./libs/bootstrap-vue.min.js"></script>
+    <script src="./libs/bootstrap-vue-icons.min.js"></script>
+    
+    <script src="./index.js"></script>
+</body>
+</html>
