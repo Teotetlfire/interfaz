@@ -5,48 +5,36 @@ uibuilder.start()
 new Vue({
     el: '#app',
     data: {
-        // Variables de datos
-        temperatura: 0,      // Valor numérico
-        motorActivo: false,  // Booleano (true/false)
+        // Datos del sistema
+        temperatura: 0,
+        motorActivo: false,
         
-        // Variables visuales (no tocar manualmente)
+        // Datos visuales del Gauge
         anguloAguja: 0,
-        arcoLlenado: 0
+        arcoLlenado: 0,
+        
+        // Variables para el mapa
+        mapa: null,
+        marcador: null
     },
     computed: {
-        // Calculamos el color de la barra según la temperatura
         colorGauge: function() {
-            if (this.temperatura < 60) return '#28a745'; // Verde (OK)
-            if (this.temperatura < 85) return '#ffc107'; // Amarillo (Warn)
-            return '#dc3545'; // Rojo (Danger)
+            if (this.temperatura < 60) return '#28a745'; // Verde
+            if (this.temperatura < 85) return '#ffc107'; // Amarillo
+            return '#dc3545'; // Rojo
         }
     },
     methods: {
-        // Función para mover la aguja visualmente
         actualizarGauge: function(valor) {
-            // 1. Limitar el valor entre 0 y 100 para que la aguja no se salga
             if (valor > 100) valor = 100;
             if (valor < 0) valor = 0;
-
-            // 2. Guardar el valor real
             this.temperatura = valor;
-
-            // 3. Calcular ángulo (Regla de 3)
-            // 0 grados es "izquierda", 180 es "derecha".
-            // Convertimos 0-100 a 0-180
             this.anguloAguja = (valor / 100) * 180;
-
-            // 4. Calcular el llenado del arco (Truco SVG)
-            // El arco completo mide aprox 251 pixeles (Pi * Radio)
             const longitudArco = 251; 
             this.arcoLlenado = (valor / 100) * longitudArco;
         },
-
         alternarMotor: function() {
-            // Cambiamos el estado localmente
             this.motorActivo = !this.motorActivo;
-            
-            // Enviamos el aviso a Node-RED
             uibuilder.send({
                 topic: "comando_motor",
                 payload: this.motorActivo
@@ -54,25 +42,36 @@ new Vue({
         }
     },
     mounted: function() {
-        console.log("HMI Cargada con Gauge y LED");
+        console.log("HMI Iniciada");
 
-        // Escuchar mensajes de Node-RED
+        // --- INICIO LÓGICA MAPA ---
+        // Coordenadas ACTUALIZADAS: Caborca, Sonora
+        var lat = 30.7083;
+        var lon = -112.1508;
+
+        // Crear mapa vinculado al div 'mapaPlanta'
+        // Nota: Cambié el zoom de 13 a 14 para que se vea más cerca la ciudad
+        this.mapa = L.map('mapaPlanta').setView([lat, lon], 14);
+
+        // Cargar capas de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(this.mapa);
+
+        // Crear marcador
+        this.marcador = L.marker([lat, lon]).addTo(this.mapa);
+        this.marcador.bindPopup("<b>Planta Principal</b><br>Sistema Online").openPopup();
+        
+        // Corrección común: Forzar al mapa a recalcular su tamaño
+        setTimeout(() => { this.mapa.invalidateSize(); }, 500);
+        // --- FIN LÓGICA MAPA ---
+
+        // Escuchar a Node-RED
         uibuilder.onChange('msg', (newMsg) => {
-            
-            // Si el mensaje es sobre el sensor (como definimos en Node-RED)
             if (newMsg.topic === "sensor_temp") {
-                // Asumimos que el payload es texto "Temperatura: 34.5 °C"
-                // Ojo: Si ya lo mandas limpio desde Node-RED es mejor.
-                // Aquí vamos a extraer solo el número usando Regex o split
-                // TRUCO: Modifiquemos Node-RED para mandar SOLO el número en el paso siguiente
-                // Pero por si acaso, intentamos leer el numero directo:
-                var numero = parseFloat(newMsg.payload); 
-                
-                // Si logramos sacar un numero, actualizamos
-                if (!isNaN(numero)) {
-                    this.actualizarGauge(numero);
-                }
+                this.actualizarGauge(parseFloat(newMsg.payload));
             }
-        })
+        });
     }
 })

@@ -7,70 +7,74 @@
     
     <link type="text/css" rel="stylesheet" href="./libs/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="./libs/bootstrap-vue.min.css" />
-    
+    <link type="text/css" rel="stylesheet" href="./libs/leaflet.css" />
     <link type="text/css" rel="stylesheet" href="./index.css" media="all">
 </head>
 <body>
-    <h1>PLCNODE</h1>
-    <div id="app" class="container-fluid p-4" style="background-color: #f4f4f4; min-height: 100vh;">
     
-    <b-card header="Monitor de Planta" header-bg-variant="dark" header-text-variant="white">
-        <b-row>
-            <b-col md="6" class="text-center">
-                <h4>Temperatura Caldera</h4>
-                
-                <svg viewBox="0 0 200 120" style="width: 100%; max-width: 300px;">
+    <div id="app" class="container-fluid p-4" style="background-color: #f4f4f4; min-height: 100vh;">
+        
+        <b-card header="Monitor de Planta" header-bg-variant="dark" header-text-variant="white" class="mb-4">
+            <b-row>
+                <b-col md="6" class="text-center border-right">
+                    <h4>Temperatura Caldera</h4>
                     
-                    <path d="M 20 100 A 80 80 0 0 1 180 100" 
-                          fill="none" stroke="#e0e0e0" stroke-width="20" />
+                    <svg viewBox="0 0 200 120" style="width: 100%; max-width: 300px;">
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                              fill="none" stroke="#e0e0e0" stroke-width="20" />
+                        
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                              fill="none" :stroke="colorGauge" stroke-width="20" 
+                              :stroke-dasharray="arcoLlenado + ', 1000'" />
+                        
+                        <line x1="100" y1="100" x2="60" y2="100" 
+                              stroke="black" stroke-width="3"
+                              :transform="'rotate(' + anguloAguja + ' 100 100)'" />
+                        
+                        <text x="100" y="90" text-anchor="middle" font-weight="bold" font-size="20">
+                            {{ temperatura.toFixed(1) }}°C
+                        </text>
+                    </svg>
+                    <p class="text-muted">Rango: 0 - 100 °C</p>
+                </b-col>
 
-                    <path d="M 20 100 A 80 80 0 0 1 180 100" 
-                          fill="none" :stroke="colorGauge" stroke-width="20" 
-                          :stroke-dasharray="arcoLlenado + ', 1000'" />
+                <b-col md="6" class="text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-4">
+                        <h4>Estado del Motor</h4>
+                        <b-icon :icon="motorActivo ? 'circle-fill' : 'circle'" 
+                                :variant="motorActivo ? 'success' : 'danger'" 
+                                font-scale="4"
+                                class="mb-2"></b-icon>
+                        <h5 :class="motorActivo ? 'text-success' : 'text-danger'">
+                            {{ motorActivo ? 'ENCENDIDO' : 'APAGADO' }}
+                        </h5>
+                    </div>
 
-                    <line x1="100" y1="100" x2="60" y2="100" 
-                          stroke="black" stroke-width="3"
-                          :transform="'rotate(' + anguloAguja + ' 100 100)'" />
-                    
-                    <text x="100" y="90" text-anchor="middle" font-weight="bold" font-size="20">
-                        {{ temperatura.toFixed(1) }}°C
-                    </text>
-                </svg>
+                    <b-button :variant="motorActivo ? 'danger' : 'success'" 
+                              size="lg" 
+                              @click="alternarMotor">
+                        <b-icon :icon="motorActivo ? 'power' : 'play-fill'"></b-icon> 
+                        {{ motorActivo ? 'Detener Motor' : 'Arrancar Motor' }}
+                    </b-button>
+                </b-col>
+            </b-row>
+        </b-card>
 
-                <p class="text-muted">Rango: 0 - 100 °C</p>
-            </b-col>
+        <b-card header="Ubicación de Planta" header-bg-variant="secondary" header-text-variant="white">
+            <b-row>
+                <b-col md="12">
+                    <div id="mapaPlanta" style="height: 400px; width: 100%; z-index: 1;"></div>
+                </b-col>
+            </b-row>
+        </b-card>
 
-            <b-col md="6" class="text-center d-flex flex-column justify-content-center align-items-center">
-                
-                <div class="mb-4">
-                    <h4>Estado del Motor</h4>
-                    <b-icon :icon="motorActivo ? 'circle-fill' : 'circle'" 
-                            :variant="motorActivo ? 'success' : 'danger'" 
-                            font-scale="4"
-                            class="mb-2"></b-icon>
-                    
-                    <h5 :class="motorActivo ? 'text-success' : 'text-danger'">
-                        {{ motorActivo ? 'ENCENDIDO' : 'APAGADO' }}
-                    </h5>
-                </div>
-
-                <b-button :variant="motorActivo ? 'danger' : 'success'" 
-                          size="lg" 
-                          @click="alternarMotor">
-                    <b-icon :icon="motorActivo ? 'power' : 'play-fill'"></b-icon> 
-                    {{ motorActivo ? 'Detener Motor' : 'Arrancar Motor' }}
-                </b-button>
-
-            </b-col>
-        </b-row>
-    </b-card>
-</div>
+    </div>
 
     <script src="../uibuilder/uibuilder.iife.min.js"></script>
-
     <script src="./libs/vue.min.js"></script>
     <script src="./libs/bootstrap-vue.min.js"></script>
     <script src="./libs/bootstrap-vue-icons.min.js"></script>
+    <script src="./libs/leaflet.js"></script>
     
     <script src="./index.js"></script>
 </body>
